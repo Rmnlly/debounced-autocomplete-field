@@ -1,48 +1,58 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import "./styles.css";
 
-//This will be a component that takes a value from an input
-//Calls the reddit/scryfall api to autocomplete/show data
-//We will debounce the api calls
-//The whole thing will use a custom debouncer
-//We will use hooks to make this
+import useDebounce from "./useDebounce";
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      input: "",
-      items: []
-    };
-  }
+const DELAY = 500;
+const CARD_SEARCH_URL = "https://api.scryfall.com/cards/autocomplete";
 
-  getItems(searchTerm) {
-    // fetch(`${magic}?q=${searchTerm}`)
-    //   .then(r => r.json())
-    //   .then(r => {
-    //     this.setState(() => ({
-    //       items: [...r]
-    //     }));
-    //   })
-    //   .catch(error => {
-    //     console.error(error);
-    //     return [];
-    //   });
-    //fetch from the magic api
-  }
+function App() {
+  const [searchInput, setSearchInput] = useState("");
+  const [results, setResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isError, setIsError] = useState(false);
 
-  render() {
-    console.log(this.state);
-    return (
-      <div className="App">
-        <h1>Hello CodeSandbox</h1>
-        <h2>Start editing to see some magic happen!</h2>
+  const debouncedSearchInput = useDebounce(searchInput, DELAY);
 
-        <input type="text" className="input" onChange={this.handleChange} />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (debouncedSearchInput) {
+      const fetchResults = async () => {
+        setIsError(false);
+        setIsSearching(true);
+        try {
+          const rawResults = await fetch(
+            `${CARD_SEARCH_URL}?q=${debouncedSearchInput}`
+          );
+          let results = await rawResults.json();
+          setResults(results.data);
+          console.log(results.data);
+        } catch (error) {
+          console.log(error);
+          setIsError(true);
+        }
+        setIsSearching(false);
+      };
+
+      fetchResults();
+    }
+  }, [debouncedSearchInput]);
+
+  return (
+    <div className="App">
+      <h1>Magic Card autocomplete</h1>
+      <h3>Try searching for a magic card</h3>
+
+      <input
+        type="text"
+        className="input"
+        onChange={e => setSearchInput(e.target.value)}
+      />
+      {isSearching && <p>Searching...</p>}
+      {!isSearching && results.length > 0 && results.map(card => <p>{card}</p>)}
+      {isError && <p>Error!</p>}
+    </div>
+  );
 }
 
 const rootElement = document.getElementById("root");
