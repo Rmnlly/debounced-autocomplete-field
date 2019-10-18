@@ -1,7 +1,7 @@
 # Debounced Autocompleting Text Field
 
-- This will be a component that takes a value from an input
-- Calls the reddit/scryfall api to autocomplete/show data
-- We will debounce the api calls
-- The whole thing will use a custom debouncer
-- We will use hooks to make this
+In this learning experiment I am using the [scryfall card autocomplete api](https://scryfall.com/docs/api/cards/autocomplete).
+
+The goal was to create an input field which will try to load card names from an API. 
+I also implemented a debounce so that the user isn't firing the API constantly.
+The whole component is created using hooks. 
